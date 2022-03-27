@@ -175,13 +175,12 @@ FYI - Sample Payload
 
 ### Setup Fleet Management YB and Kafka
 
-
 1. Clone IoT Fleet Management Project and make it
 
     ```bash
     git clone git@github.com:yogendra/yb-iot-fleet-management.git
     cd yb-iot-fleet-management
-    mvn clean package
+    mvn clean package -DskipTests
     cd ..
     ```
 
@@ -277,13 +276,11 @@ FYI - Sample Payload
         AND transactions = {'enabled': 'false'};
     ```
 
-1. Run dashboard application
+1. (Terminal - 2) Run dashboard application
 
     ```bash
-    nohup java -jar yb-iot-fleet-management/iot-springboot-dashboard/target/iot-springboot-dashboard-1.0.0.jar &>> /tmp/iot-springboot-dashboard.log &
+    java -jar yb-iot-fleet-management/iot-springboot-dashboard/target/iot-springboot-dashboard-1.0.0.jar
     ```
-
-    Monitor  Dashboard Logs- `tail -f /tmp/iot-springboot-dashboard.log`
 
 1. [Click here to open dashboard - http://localhost:8080](http://localhost:8080/)
 
@@ -301,30 +298,100 @@ FYI - Sample Payload
 
     ```log
     ##
+    ## Create topic : iot-data-event
+    ##
+
+    Created topic "iot-data-event".
+
+    ##
     ## Create KSQL Tables and Streams
     ##
+
+    Mar 28, 2022 12:32:12 AM org.jline.utils.Log logr
+    WARNING: Unable to create a system terminal, creating a dumb terminal (enable debug logging for more information)
+    KSQL, Copyright 2017-2018 Confluent Inc.
+
+    CLI v5.0.3, Server v5.0.3 located at http://localhost:8088
+
+    Having trouble? Type 'help' (case-insensitive) for a rundown of how things work!
+
+    ksql>   RUN SCRIPT '<project-dir>/yb-iot-fleet-management/iot-ksql-processor/setup_streams.ksql';
+    Message
+    ---------
+
+    ---------
+    ksql>   show tables;
+    Table Name     | Kafka Topic    | Format | Windowed
+    -----------------------------------------------------
+    WINDOW_TRAFFIC | window_traffic | JSON   | true
+    TOTAL_TRAFFIC  | total_traffic  | JSON   | false
+    -----------------------------------------------------
+    ksql>   show streams;
+    Stream Name    | Kafka Topic    | Format
+    ------------------------------------------
+    TRAFFIC_STREAM | iot-data-event | JSON
+    POI_TRAFFIC    | poi_traffic    | JSON
+    ------------------------------------------
+    ksql>   exitExiting KSQL.
+
     ##
     ## Create Kafka Connect Connector - yugabyte-sink
     ##
+
+    {"name":"yugabyte-sink","config":{"confluent.license":"","key.converter":"org.apache.kafka.connect.storage.StringConverter","value.converter":"org.apache.kafka.connect.json.JsonConverter","key.converter.schemas.enable":"false","value.converter.schemas.enable":"false","offset.flush.interval.ms":"10000","connector.class":"com.yb.connect.sink.YBSinkConnector","yugabyte.cql.contact.points":"127.0.0.1:9042,127.0.0.2:9042,127.0.0.3:9042","yugabyte.cql.keyspace":"TrafficKeySpace","yugabyte.cql.tablename":"Origin_Table","topics":"iot-data-event","name":"yugabyte-sink"},"tasks":[],"type":"sink"}
     ##
     ## Create Kafka Connect Connector - yugabyte-sink-poi
     ##
+
+    {"name":"yugabyte-sink-poi","config":{"confluent.license":"","key.converter":"org.apache.kafka.connect.storage.StringConverter","value.converter":"org.apache.kafka.connect.json.JsonConverter","key.converter.schemas.enable":"false","value.converter.schemas.enable":"false","offset.flush.interval.ms":"10000","connector.class":"com.yb.connect.sink.YBSinkConnector","yugabyte.cql.contact.points":"127.0.0.1:9042,127.0.0.2:9042,127.0.0.3:9042","yugabyte.cql.keyspace":"TrafficKeySpace","yugabyte.cql.tablename":"Poi_Traffic","topics":"poi_traffic","name":"yugabyte-sink-poi"},"tasks":[],"type":"sink"}
     ##
     ## Create Kafka Connect Connector - yugabyte-sink-total
     ##
+
+    {"name":"yugabyte-sink-total","config":{"confluent.license":"","key.converter":"org.apache.kafka.connect.storage.StringConverter","value.converter":"org.apache.kafka.connect.json.JsonConverter","key.converter.schemas.enable":"false","value.converter.schemas.enable":"false","offset.flush.interval.ms":"10000","connector.class":"com.yb.connect.sink.YBSinkConnector","yugabyte.cql.contact.points":"127.0.0.1:9042,127.0.0.2:9042,127.0.0.3:9042","yugabyte.cql.keyspace":"TrafficKeySpace","yugabyte.cql.tablename":"Total_Traffic","topics":"total_traffic","name":"yugabyte-sink-total"},"tasks":[],"type":"sink"}
     ##
     ## Create Kafka Connect Connector - yugabyte-sink-window
     ##
-    Completed
-      ```
+
+    {"name":"yugabyte-sink-window","config":{"confluent.license":"","key.converter":"org.apache.kafka.connect.storage.StringConverter","value.converter":"org.apache.kafka.connect.json.JsonConverter","key.converter.schemas.enable":"false","value.converter.schemas.enable":"false","offset.flush.interval.ms":"10000","connector.class":"com.yb.connect.sink.YBSinkConnector","yugabyte.cql.contact.points":"127.0.0.1:9042,127.0.0.2:9042,127.0.0.3:9042","yugabyte.cql.keyspace":"TrafficKeySpace","yugabyte.cql.tablename":"Window_Traffic","topics":"window_traffic","name":"yugabyte-sink-window"},"tasks":[],"type":"sink"}
+    ##
+    ## Check connectors
+    ##
+
+    ["yugabyte-sink-total","yugabyte-sink","yugabyte-sink-window","yugabyte-sink-poi"]
+    ##
+    ## Completed
+    ##
+    ```
 
 1. Run the sample data producer
 
     ```bash
-    nohup java -jar yb-iot-fleet-management/iot-kafka-producer/target/iot-kafka-producer-1.0.0.jar  &>> /tmp/iot-kafka-producer.log &
+    yb-iot-fleet-management/iot-kafka-producer/target/iot-kafka-producer-1.0.0.jar
     ```
 
-    Monitor  Producer Logs- `tail -f /tmp/iot-kafka-producer.log`
+    **Output**
+
+    ```log
+    2022-03-28 00:36:19 INFO  IoTDataProducer:46 - Using Zookeeper=localhost:2181 ,Broker-list=localhost:9092 and topic iot-data-event
+    2022-03-28 00:36:20 INFO  VerifiableProperties:68 - Verifying properties
+    2022-03-28 00:36:20 INFO  VerifiableProperties:68 - Property metadata.broker.list is overridden to localhost:9092
+    2022-03-28 00:36:20 INFO  VerifiableProperties:68 - Property request.required.acks is overridden to 1
+    2022-03-28 00:36:20 INFO  VerifiableProperties:68 - Property serializer.class is overridden to com.iot.app.kafka.util.IoTDataEncoder
+    2022-03-28 00:36:20 WARN  VerifiableProperties:83 - Property zookeeper.connect is not valid
+    SLF4J: Failed to load class "org.slf4j.impl.StaticLoggerBinder".
+    SLF4J: Defaulting to no-operation (NOP) logger implementation
+    SLF4J: See http://www.slf4j.org/codes.html#StaticLoggerBinder for further details.
+    2022-03-28 00:36:20 INFO  IoTDataProducer:74 - Sending events
+    2022-03-28 00:36:20 INFO  IoTDataEncoder:28 - {"vehicleId":"9ff178dc-37b5-446a-b045-476baaae4ad8","vehicleType":"18 Wheeler","routeId":"Route-37","longitude":"-95.536865","latitude":"33.04445","timestamp":"2022-03-27 09:36:20","speed":54.0,"fuelLevel":22.0}
+    2022-03-28 00:36:20 INFO  ClientUtils$:68 - Fetching metadata from broker id:0,host:localhost,port:9092 with correlation id 0 for 1 topic(s) Set(iot-data-event)
+    2022-03-28 00:36:20 INFO  SyncProducer:68 - Connected to localhost:9092 for producing
+    2022-03-28 00:36:20 INFO  SyncProducer:68 - Disconnecting from localhost:9092
+    2022-03-28 00:36:20 INFO  SyncProducer:68 - Connected to 10.20.30.229:9092 for producing
+    2022-03-28 00:36:21 INFO  IoTDataEncoder:28 - {"vehicleId":"d4e47569-0e07-43b4-84e9-b7211dee3aa4","vehicleType":"18 Wheeler","routeId":"Route-37","longitude":"-95.74075","latitude":"33.217064","timestamp":"2022-03-27 09:36:21","speed":37.0,"fuelLevel":22.0}
+    2022-03-28 00:36:21 INFO  IoTDataEncoder:28 - {"vehicleId":"ac55ed14-caed-4019-92ed-19d20934c045","vehicleType":"18 Wheeler","routeId":"Route-82","longitude":"-96.538895","latitude":"34.96734","timestamp":"2022-03-27 09:36:21","speed":35.0,"fuelLevel":17.0}
+    ...
+    ```
 
     Random data generated used following key points for co-ordinates.
 
@@ -381,4 +448,3 @@ scripts/cleanup
 1. Upgrade Java
 
 1. Make into a single docker-compose
-
