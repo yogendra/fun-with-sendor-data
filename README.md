@@ -446,6 +446,39 @@ FYI - Sample Payload
 
 - Partial - Yugabyte DB cleanup
 
+    ```bash
+    yugabyte-2.13.0.1/bin/ycqlsh -f yb-iot-fleet-management/resources/IoTData.cql
+    ```
+
+    **Output**
+
+    ```log
+
+    count
+    -------
+        0
+
+    (1 rows)
+
+    count
+    -------
+        0
+
+    (1 rows)
+
+    count
+    -------
+        0
+
+    (1 rows)
+
+    count
+    -------
+        0
+
+    (1 rows)
+    ```
+
 - Full Cleanup
 
     ```bash
