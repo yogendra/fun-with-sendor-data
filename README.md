@@ -8,6 +8,12 @@
 - Mosquitto latest
 
 ## Setup
+1. Clone this repository into a directory. Lets refer is by `<project-dir>` in this article. In command below  its `fun-with-sensors-data`
+
+    ```bash
+    git clone https://github.com/yogendra/fun-with-sensors-data.git   fun-with-sensors-data
+    cd fun-with-sensors-data
+    ```    
 
 1. Setup Yugabyte
 
