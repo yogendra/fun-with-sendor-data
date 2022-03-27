@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+PROJECT_DIR=$( cd ${SCRIPT_DIR}/.. ; pwd)
+
+echo "
+##
+## Remove Connectors
+##
+"
+curl -s -X DELETE  localhost:8083/connectors/yugabyte-sink
+curl -s -X DELETE  localhost:8083/connectors/yugabyte-sink-window
+curl -s -X DELETE  localhost:8083/connectors/yugabyte-sink-poi
+curl -s -X DELETE  localhost:8083/connectors/yugabyte-sink-total
+curl http://localhost:8083/connectors
+
+echo "
+##
+## Remove KSQL Streams and Tables
+##
+"
+$PROJECT_DIR/confluent-5.0.3/bin/ksql <<EOF
+  show tables;
+  show streams;
+  terminate CTAS_WINDOW_TRAFFIC_1;
+  drop table  WINDOW_TRAFFIC delete topic ;
+  terminate CTAS_TOTAL_TRAFFIC_0;
+  drop table TOTAL_TRAFFIC delete topic;
+  terminate CSAS_POI_TRAFFIC_2;
+  drop stream  POI_TRAFFIC delete topic;
+  drop stream TRAFFIC_STREAM ;
+  show tables;
+  show streams;
+  exit
+EOF
+
+
+echo "
+##
+## Delete topics
+##
+"
+
+$PROJECT_DIR/confluent-5.0.3/bin/kafka-topics --zookeeper localhost:2181 --delete --topic iot-data-event
+
+
+echo "
+##
+## Completed
+##
+"
