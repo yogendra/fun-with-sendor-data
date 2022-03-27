@@ -103,6 +103,29 @@
         confluent-5.0.3/bin/confluent start
         ```
 
+        **Output**
+
+        ```log
+        This CLI is intended for development only, not for production
+        https://docs.confluent.io/current/cli/index.html
+
+        Using CONFLUENT_CURRENT: /var/folders/b8/tmz5qjss0n32p_l31d81glnm0000gn/T/confluent.nQSE6BnB
+        Starting zookeeper
+        zookeeper is [UP]
+        Starting kafka
+        kafka is [UP]
+        Starting schema-registry
+        schema-registry is [UP]
+        Starting kafka-rest
+        kafka-rest is [UP]
+        Starting connect
+        connect is [UP]
+        Starting ksql-server
+        ksql-server is [UP]
+        Starting control-center
+        control-center is [UP]
+        ```
+
     1. Install Yugabyte Sink Connector
 
         ```bash
