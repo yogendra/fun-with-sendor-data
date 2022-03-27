@@ -291,7 +291,7 @@ FYI - Sample Payload
 1. Setup confluent components
 
     ```bash
-    scripts/setup-confluent-iot-fleet-mgmt
+    scripts/setup-kafka-objects-iot-fleet-mgmt
     ```
 
     **Output**
@@ -437,9 +437,65 @@ FYI - Sample Payload
 
 ## Clean up
 
-```bash
-scripts/cleanup
-```
+
+- Partial  - Kafka cleanup
+
+    ```bash
+    scripts/cleanup-kafka-objects-iot-fleet-mgmt
+    ```
+
+- Partial - Yugabyte DB cleanup
+
+- Full Cleanup
+
+    ```bash
+    scripts/cleanup
+    ```
+
+    **Output**
+
+    ```log
+    ##
+    ## Destroy yugabyte cluster
+    ##
+
+    Stopped yugabyted using config <home-dir>/var/conf/yugabyted.conf.
+    Deleted logs at <home-dir>/var/logs.
+    Deleted data at <home-dir>/var/data.
+    Deleted conf file at <home-dir>/var/conf/yugabyted.conf.
+
+    ##
+    ## Destroy confluent cluster
+    ##
+
+    This CLI is intended for development only, not for production
+    https://docs.confluent.io/current/cli/index.html
+
+    Using CONFLUENT_CURRENT: /var/folders/b8/tmz5qjss0n32p_l31d81glnm0000gn/T/confluent.XWr85AfY
+    Stopping control-center
+    control-center is [DOWN]
+    Stopping ksql-server
+    ksql-server is [DOWN]
+    Stopping connect
+    connect is [DOWN]
+    Stopping kafka-rest
+    kafka-rest is [DOWN]
+    Stopping schema-registry
+    schema-registry is [DOWN]
+    Stopping kafka
+    kafka is [DOWN]
+    Stopping zookeeper
+    zookeeper is [DOWN]
+    Deleting: /var/folders/b8/tmz5qjss0n32p_l31d81glnm0000gn/T/confluent.XWr85AfY
+
+    ##
+    ## Kill iot-fleet-management applicaiton processes (producer and dashboard)
+    ##
+
+    ##
+    ## Completed
+    ##
+    ```
 
 ## ToDo
 
