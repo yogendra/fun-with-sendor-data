@@ -5,9 +5,9 @@
 - Java 1.8 - This is important as a lot of component rely on it
 - Confluent 5.0.x
 - Yugabyte 2.13.x
-- Mosquitto latest
 
 ## Setup
+
 1. Clone this repository into a directory. Lets refer is by `<project-dir>` in this article. In command below  its `fun-with-sensors-data`
 
     ```bash
@@ -287,6 +287,8 @@ FYI - Sample Payload
 
 1. [Click here to open dashboard - http://localhost:8080](http://localhost:8080/)
 
+    Empty Dashboard would look like following:
+
     ![Fleet Dahsbaord - Empty](fleet-dashboard-empty.png)
 
 1. Setup confluent components
@@ -323,6 +325,11 @@ FYI - Sample Payload
     ```
 
     Monitor  Producer Logs- `tail -f /tmp/iot-kafka-producer.log`
+
+    Random data generated used following key points for co-ordinates.
+
+    ![Map - Key Points Used for Random Co-ordinates](map-key-points.png)
+
 1. [Goto dashboard](http://localhost:8080) to confirm data flowing into the system.
 
     ![Fleet Dashboard - Populated](fleet-dashboard-populated.png)
@@ -361,212 +368,6 @@ FYI - Sample Payload
     (1 rows)
     ```
 
-
-## [WIP / DRAFT ] Demo : Sensor Data
-
-### Setup Sensor Data Kafka, MQTT and Yugabyte
-
-1. Create topic for mqtt temperatures
-
-    ```bash
-    kafka-topics --create  --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic mqtt.temperature
-    ```
-
-    **Output**
-
-    ```log
-    WARNING: Due to limitations in metric names, topics with a period ('.') or underscore ('_') could collide. To avoid issues it is best to use either, but not both.
-    Created topic mqtt.temperature.
-    ```
-
-1. Setup Kafka MQTT Connect
-
-    1. Create connector for `mqtt-source`
-
-        ```bash
-        curl -s -X POST -H 'Content-Type: application/json' http://localhost:8083/connectors \
-        -d '{
-          "name" : "mqtt-source",
-          "config" : {
-            "connector.class" : "io.confluent.connect.mqtt.MqttSourceConnector",
-            "tasks.max" : "1",
-            "mqtt.server.uri" : "tcp://127.0.0.1:1883",
-            "mqtt.topics" : "temperature",
-            "value.converter": "org.apache.kafka.connect.json.JsonConverter",
-            "key.converter": "org.apache.kafka.connect.storage.StringConverter",
-            "kafka.topic" : "mqtt.temperature",
-            "confluent.topic.bootstrap.servers": "localhost:9092",
-            "confluent.topic.replication.factor": "1",
-            "confluent.license":""
-          }
-        }'
-        ```
-
-        **Output**
-
-        ```json
-        {"name":"mqtt-source","config":{"connector.class":"io.confluent.connect.mqtt.MqttSourceConnector","tasks.max":"1","mqtt.server.uri":"tcp://127.0.0.1:1883","mqtt.topics":"temperature","kafka.topic":"mqtt.temperature","confluent.topic.bootstrap.servers":"localhost:9092","confluent.topic.replication.factor":"1","confluent.license":"","name":"mqtt-source"},"tasks":[],"type":"source"}
-        ```
-
-    1. (Optional) List connector status
-
-        ```bash
-        curl http://localhost:8083/connectors
-        ```
-
-        **Output**
-
-        ```json
-        ["mqtt-source"]
-        ```
-
-        OR using `confluent`
-
-        ```bash
-        confluent local services connect connector status
-        ```
-
-        **Output**
-
-        ```log
-        The local commands are intended for a single-node development environment only,
-        NOT for production usage. https://docs.confluent.io/current/cli/index.html
-
-        [
-          "mqtt-source"
-        ]
-        ```
-
-    1. (Optional) Check `mqtt-source` status
-
-        ```bash
-        curl -s "http://localhost:8083/connectors/mqtt-source/status"
-        ```
-
-        **Output**
-
-        ```json
-        {"name":"mqtt-source","connector":{"state":"RUNNING","worker_id":"10.20.30.229:8083"},"tasks":[{"id":0,"state":"RUNNING","worker_id":"10.20.30.229:8083"}],"type":"source"}
-        ```
-
-        OR using `confluent`
-
-        ```bash
-        confluent local services connect connector status mqtt-source
-        ```
-
-        **Output**
-
-        ```log
-        The local commands are intended for a single-node development environment only,
-        NOT for production usage. https://docs.confluent.io/current/cli/index.html
-
-        {
-          "name": "mqtt-source",
-          "connector": {
-            "state": "RUNNING",
-            "worker_id": "<your-machine-ip>:8083"
-          },
-          "tasks": [
-            {
-              "id": 0,
-              "state": "RUNNING",
-              "worker_id": "<your-machine-ip>:8083"
-            }
-          ],
-          "type": "source"
-        }
-        ```
-
-    1. FYI Only - Delete connector
-
-        ```bash
-        curl -s -X DELETE localhost:8083/connectors/mqtt-source
-        ```
-
-        **Output**
-
-        _No Output_
-
-1. (Optional) Test MQTT and Kafka Setup
-
-    1. Terminal 2: Run `mosquitto_sub` to listen on temperature
-
-        ```bash
-        mosquitto_sub -h 127.0.0.1 -t temperature
-        ```
-
-        **Output**
-
-        _No Output_
-
-    1. Terminal 3: Run `kafka-console-consumer` to listen to `mqtt.temperature` topic
-
-        ```bash
-        kafka-console-consumer  --zookeeper localhost:2181 --topic mqtt.temperature --property print.key=true --from-beginning
-        ```
-
-        **Output**
-
-        _No Output_
-
-    1. Launch ycqlsh. You can find `ycqlsh` in the `bin` subdirectory located inside the YugabyteDB installation folder.
-
-        ```bash
-        yugabyte-2.13.0.1/bin/ycqlsh
-        ```
-
-        **Output**
-
-        ```log
-        [ycqlsh 5.0.1 | Cassandra 3.9-SNAPSHOT | CQL spec 3.4.2 | Native protocol v4]
-        Use HELP for help.
-        ycqlsh>
-        ```
-
-    1. Create a keyspace and table by running the following command.
-
-        Run following in the `cqlsh`
-
-        ```sql
-        CREATE KEYSPACE IF NOT EXISTS demo;
-        CREATE TABLE demo.test_table (key text, value bigint, ts timestamp, PRIMARY KEY (key));
-        ```
-
-        **Output**
-
-        _No Output_
-
-1. Setup Kafka Yugabyte Connector
-
-    1. Create kafka connect
-
-        ```bash
-        curl -s -X POST -H 'Content-Type: application/json' http://localhost:8083/connectors \
-        -d '{
-          "name" : "yugbayte-sink",
-          "config" : {
-            "connector.class" : "com.yb.connect.sink.YBSinkConnector",
-            "topics": "mqtt.temperature",
-            "tasks.max" : "1",
-            "key.converter": "org.apache.kafka.connect.storage.StringConverter",
-            "value.converter": "org.apache.kafka.connect.storage.StringConverter"
-            "key.converter.schemas.enable": "false",
-            "value.converter.schemas.enable":"false",
-            "yugabyte.cql.keyspace": "demo",
-            "yugabyte.cql.tablename": "test_table",
-            "yugabyte.cql.contact.points": "127.0.0.1:9042,127.0.0.2:9042,127.0.0.3:9042",
-            "confluent.license":""
-          }
-        }'
-        ```
-
-        **Output**
-
-        ```json
-        {"name":"yugbayte-sink","config":{"connector.class":"com.yb.connect.sink.YBSinkConnector","topics":"mqtt.temperature","tasks.max":"1","yugabyte.cql.keyspace":"demo","yugabyte.cql.tablename":"test_table","yugabyte.cql.contact.points":"127.0.0.1:9042,127.0.0.2:9042,127.0.0.3:9042","confluent.topic.bootstrap.servers":"localhost:9092","confluent.topic.replication.factor":"1","confluent.license":"","name":"yugbayte-sink"},"tasks":[],"type":"sink"}
-        ```
-
 ## Clean up
 
 ```bash
@@ -580,3 +381,4 @@ scripts/cleanup
 1. Upgrade Java
 
 1. Make into a single docker-compose
+
