@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+PROJECT_DIR=$( cd ${SCRIPT_DIR}/.. ; pwd)
+LOG_FILE=/tmp/setup-confluent-iot-fleet-mgmt.log
+
+
+$PROJECT_DIR/yugabyte-2.13.0.1/bin/yugabyted destroy
+$PROJECT_DIR/confluent-5.0.3/bin/confluent destroy
+for pid in $(ps -eaf | grep java | grep yb-iot-fleet-management/iot- | awk {'print $2'}); do
+  kill $pid
+done
