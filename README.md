@@ -7,17 +7,7 @@
 - Yugabyte 2.13.x
 - Mosquitto latest
 
-
 ## Setup
-
-1. Clone IoT Fleet Management Project and make it
-
-    ```bash
-    git clone git@github.com:yogendra/yb-iot-fleet-management.git
-    cd yb-iot-fleet-management
-    mvn clean package
-    cd ..
-    ```
 
 1. Setup Yugabyte
 
@@ -110,7 +100,7 @@
         tar -xvf confluent-5.0.3-2.11.tar.gz
         export CONFLUENT_HOME=$PWD/confluent-5.0.3
         export PATH=$PATH:$CONFLUENT_HOME/bin
-        confluent start
+        confluent-5.0.3/bin/confluent start
         ```
 
     1. Install Yugabyte Sink Connector
@@ -122,37 +112,17 @@
         **Output**
 
         ```log
-
-        Implicit confirmation of the question: You are about to install 'yb-kafka-connector' from Yugabyte, Inc., as published on Confluent Hub.
-        Downloading component Kafka Connect Yugabyte 1.0.0, provided by Yugabyte, Inc. from Confluent Hub and installing into <current-directory>/confluent-5.0.3share/confluent-hub-components
-        Adding installation directory to plugin path in the following files:
-          <current-directory>/confluent-5.0.3/etc/kafka/connect-distributed.properties
-          <current-directory>/confluent-5.0.3/etc/kafka/connect-standalone.properties
-          <current-directory>/confluent-5.0.3/etc/schema-registry/connect-avro-distributed.properties
-          <current-directory>/confluent-5.0.3/etc/schema-registry/connect-avro-standalone.properties
-
-        Completed
-        ```
-
-    1. Install MQTT Connector Connector
-
-        ```bash
-        confluent-5.0.3/bin/confluent-hub install confluentinc/kafka-connect-mqtt:latest --no-prompt
-        ```
-
-        **Output**
-
-        ```bash
         Running in a "--no-prompt" mode
-        Implicit acceptance of the license below:
-        Confluent Software Evaluation License
-        https://www.confluent.io/software-evaluation-license
-        Downloading component Kafka Connect MQTT 1.5.1, provided by Confluent, Inc. from Confluent Hub and installing into <current-directory>/confluent-5.0.3/share/confluent-hub-components
+        Implicit confirmation of the question: You are about to install 'yb-kafka-connector' from Yugabyte, Inc., as published on Confluent Hub.
+        Downloading component Kafka Connect Yugabyte 1.0.0, provided by Yugabyte, Inc. from Confluent Hub and installing into <project-dir>/confluent-5.0.3/share/confluent-hub-components
+        Implicit confirmation of the question: Do you want to uninstall existing version 1.0.0?
         Adding installation directory to plugin path in the following files:
-          <current-directory>/confluent-5.0.3/etc/kafka/connect-distributed.properties
-          <current-directory>/confluent-5.0.3/etc/kafka/connect-standalone.properties
-          <current-directory>/confluent-5.0.3/etc/schema-registry/connect-avro-distributed.properties
-          <current-directory>/confluent-5.0.3/etc/schema-registry/connect-avro-standalone.properties
+          <project-dir>/confluent-5.0.3/etc/kafka/connect-distributed.properties
+          <project-dir>/confluent-5.0.3/etc/kafka/connect-standalone.properties
+          <project-dir>/confluent-5.0.3/etc/schema-registry/connect-avro-distributed.properties
+          <project-dir>/confluent-5.0.3/etc/schema-registry/connect-avro-standalone.properties
+          /var/folders/b8/tmz5qjss0n32p_l31d81glnm0000gn/T/confluent.tgdxRufF/connect/connect.properties
+          /var/folders/b8/tmz5qjss0n32p_l31d81glnm0000gn/T/confluent.tgdxRufF/connect/connect.properties
 
         Completed
         ```
@@ -176,15 +146,50 @@ FYI - Sample Payload
 
 ### Setup Fleet Management YB and Kafka
 
+
+1. Clone IoT Fleet Management Project and make it
+
+    ```bash
+    git clone git@github.com:yogendra/yb-iot-fleet-management.git
+    cd yb-iot-fleet-management
+    mvn clean package
+    cd ..
+    ```
+
 1. Create YCQL Tables
 
     ```bash
-    yugabyte-2.13.0.1/bin/ycqlsh -f yb-iot-fleet-management/iot-springboot-dashboard/IoTData.cql
+    yugabyte-2.13.0.1/bin/ycqlsh -f yb-iot-fleet-management/resources/IoTData.cql
     ```
 
     **Output**
 
-    _No Output_
+    ```log
+
+    count
+    -------
+        0
+
+    (1 rows)
+
+    count
+    -------
+        0
+
+    (1 rows)
+
+    count
+    -------
+        0
+
+    (1 rows)
+
+    count
+    -------
+        0
+
+    (1 rows)
+    ```
 
 1. (Option) Check table definitions
 
@@ -195,6 +200,7 @@ FYI - Sample Payload
     **Output**
 
     ```sql
+
     CREATE KEYSPACE traffickeyspace WITH replication = {'class': 'SimpleStrategy', 'replication_factor': '1'}  AND durable_writes = true;
 
     CREATE TABLE traffickeyspace.origin_table (
@@ -211,7 +217,7 @@ FYI - Sample Payload
         AND default_time_to_live = 3600
         AND transactions = {'enabled': 'false'};
 
-    CREATE TABLE traffickeyspace.total_traffic (
+    CREATE TABLE traffickeyspace.window_traffic (
         routeid text,
         recorddate text,
         vehicletype text,
@@ -222,7 +228,7 @@ FYI - Sample Payload
         AND default_time_to_live = 0
         AND transactions = {'enabled': 'false'};
 
-    CREATE TABLE traffickeyspace.window_traffic (
+    CREATE TABLE traffickeyspace.total_traffic (
         routeid text,
         recorddate text,
         vehicletype text,
@@ -242,48 +248,42 @@ FYI - Sample Payload
         AND transactions = {'enabled': 'false'};
     ```
 
-1. (Option) Check table record count
-
-    ```bash
-    yugabyte-2.13.0.1/bin/ycqlsh -e "SELECT count(*) FROM TrafficKeySpace.Origin_Table; SELECT count(*) FROM TrafficKeySpace.Total_Traffic; SELECT count(*) FROM TrafficKeySpace.Window_Traffic; SELECT count(*) FROM TrafficKeySpace.Poi_Traffic; "
-    ```
-
-    **Output**
-
-    ```log
-
-    count
-    -------
-        0
-
-    (1 rows)
-
-    count
-    -------
-        0
-
-    (1 rows)
-
-    count
-    -------
-        0
-
-    (1 rows)
-
-    count
-    -------
-        0
-
-    (1 rows)
-    ```
-
 1. Run dashboard application
 
     ```bash
     nohup java -jar yb-iot-fleet-management/iot-springboot-dashboard/target/iot-springboot-dashboard-1.0.0.jar &>> /tmp/iot-springboot-dashboard.log &
     ```
 
-1. Open dashboard - [http://localhost:8080/](http://localhost:8080/)
+    Monitor  Dashboard Logs- `tail -f /tmp/iot-springboot-dashboard.log`
+
+1. [Click here to open dashboard - http://localhost:8080](http://localhost:8080/)
+
+1. Setup confluent components
+
+    ```bash
+    scripts/setup-confluent-iot-fleet-mgmt
+    ```
+
+    **Output**
+
+    ```log
+    ##
+    ## Create KSQL Tables and Streams
+    ##
+    ##
+    ## Create Kafka Connect Connector - yugabyte-sink
+    ##
+    ##
+    ## Create Kafka Connect Connector - yugabyte-sink-poi
+    ##
+    ##
+    ## Create Kafka Connect Connector - yugabyte-sink-total
+    ##
+    ##
+    ## Create Kafka Connect Connector - yugabyte-sink-window
+    ##
+    Completed
+      ```
 
 1. Run the sample data producer
 
@@ -291,54 +291,8 @@ FYI - Sample Payload
     nohup java -jar yb-iot-fleet-management/iot-kafka-producer/target/iot-kafka-producer-1.0.0.jar  &>> /tmp/iot-kafka-producer.log &
     ```
 
-1. Setup confluent components
-
-    ```bash
-    scripts/setup-confluent-fleet-mgmt
-    ```
-
-    **Output**
-
-    ```log
-    Created topic iot-data-event.
-
-
-                          ===========================================
-                          =       _              _ ____  ____       =
-                          =      | | _____  __ _| |  _ \| __ )      =
-                          =      | |/ / __|/ _` | | | | |  _ \      =
-                          =      |   <\__ \ (_| | | |_| | |_) |     =
-                          =      |_|\_\___/\__, |_|____/|____/      =
-                          =                   |_|                   =
-                          =        The Database purpose-built       =
-                          =        for stream processing apps       =
-                          ===========================================
-
-        Copyright 2017-2021 Confluent Inc.
-
-        CLI v7.0.1, Server v7.0.1 located at http://localhost:8088
-        Server Status: RUNNING
-
-        Having trouble? Type 'help' (case-insensitive) for a rundown of how things work!
-
-
-         Message
-        ---------
-
-        ---------
-
-
-        {"name":"yugabyte-sink","config":{"confluent.license":"","key.converter":"org.apache.kafka.connect.storage.StringConverter","value.converter":"org.apache.kafka.connect.json.JsonConverter","key.converter.schemas.enable":"false","value.converter.schemas.enable":"false","offset.flush.interval.ms":"10000","connector.class":"com.yb.connect.sink.YBSinkConnector","yugabyte.cql.contact.points":"127.0.0.1:9042,127.0.0.2:9042,127.0.0.3:9042","yugabyte.cql.keyspace":"TrafficKeySpace","yugabyte.cql.tablename":"Origin_Table","topics":"iot-data-event","name":"yugabyte-sink"},"tasks":[],"type":"sink"}
-
-
-        {"name":"yugabyte-sink-poi","config":{"confluent.license":"","key.converter":"org.apache.kafka.connect.storage.StringConverter","value.converter":"org.apache.kafka.connect.json.JsonConverter","key.converter.schemas.enable":"false","value.converter.schemas.enable":"false","offset.flush.interval.ms":"10000","connector.class":"com.yb.connect.sink.YBSinkConnector","yugabyte.cql.contact.points":"127.0.0.1:9042,127.0.0.2:9042,127.0.0.3:9042","yugabyte.cql.keyspace":"TrafficKeySpace","yugabyte.cql.tablename":"Poi_Traffic","topics":"poi_traffic","name":"yugabyte-sink-poi"},"tasks":[],"type":"sink"}
-
-        {"name":"yugabyte-sink-total","config":{"confluent.license":"","key.converter":"org.apache.kafka.connect.json.JsonConverter","value.converter":"org.apache.kafka.connect.json.JsonConverter","key.converter.schemas.enable":"false","value.converter.schemas.enable":"false","offset.flush.interval.ms":"10000","connector.class":"com.yb.connect.sink.YBSinkConnector","yugabyte.cql.contact.points":"127.0.0.1:9042,127.0.0.2:9042,127.0.0.3:9042","yugabyte.cql.keyspace":"TrafficKeySpace","yugabyte.cql.tablename":"Total_Traffic","topics":"total_traffic","name":"yugabyte-sink-total"},"tasks":[],"type":"sink"}
-
-        {"name":"yugabyte-sink-window","config":{"confluent.license":"","key.converter":"org.apache.kafka.connect.storage.StringConverter","value.converter":"org.apache.kafka.connect.json.JsonConverter","key.converter.schemas.enable":"false","value.converter.schemas.enable":"false","offset.flush.interval.ms":"10000","connector.class":"com.yb.connect.sink.YBSinkConnector","yugabyte.cql.contact.points":"127.0.0.1:9042,127.0.0.2:9042,127.0.0.3:9042","yugabyte.cql.keyspace":"TrafficKeySpace","yugabyte.cql.tablename":"Window_Traffic","topics":"window_traffic","name":"yugabyte-sink-window"},"tasks":[],"type":"sink"}
-        ```
-
-1. Goto dashboard to confirm data flowing into the system.
+    Monitor  Producer Logs- `tail -f /tmp/iot-kafka-producer.log`
+1. [Goto dashboard](http://localhost:8080) to confirm data flowing into the system.
 
 1. (Option) Check table record count
 
@@ -581,23 +535,11 @@ FYI - Sample Payload
         {"name":"yugbayte-sink","config":{"connector.class":"com.yb.connect.sink.YBSinkConnector","topics":"mqtt.temperature","tasks.max":"1","yugabyte.cql.keyspace":"demo","yugabyte.cql.tablename":"test_table","yugabyte.cql.contact.points":"127.0.0.1:9042,127.0.0.2:9042,127.0.0.3:9042","confluent.topic.bootstrap.servers":"localhost:9092","confluent.topic.replication.factor":"1","confluent.license":"","name":"yugbayte-sink"},"tasks":[],"type":"sink"}
         ```
 
-
-
 ## Clean up
 
-
-1. Yugabyte cleanup
-
-
-    ```bash
-    yugabyte-2.13.0.1/bin/yugabyted destroy
-    ```
-
-1. Confluent cleanup
-
-    ```bash
-
-
+```bash
+scripts/cleanup
+```
 
 ## ToDo
 
