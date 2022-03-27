@@ -3,23 +3,33 @@
 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 PROJECT_DIR=$( cd ${SCRIPT_DIR}/.. ; pwd)
-LOG_FILE=/tmp/setup-confluent-iot-fleet-mgmt.log
 
-echo "Start Setup" > $LOG_FILE
+echo "
+##
+## Create topic : iot-data-event
+##
+"
+$PROJECT_DIR/confluent-5.0.3/bin/kafka-topics --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic iot-data-event
 
-echo "##"
-echo "## Create KSQL Tables and Streams"
-echo "##"
+echo "
+##
+## Create KSQL Tables and Streams
+##
+"
 
-$PROJECT_DIR/confluent-5.0.3/bin/ksql <<EOF &>> $LOG_FILE
+$PROJECT_DIR/confluent-5.0.3/bin/ksql <<EOF
   RUN SCRIPT '$PROJECT_DIR/yb-iot-fleet-management/iot-ksql-processor/setup_streams.ksql';
+  show tables;
+  show streams;
   exit
 EOF
-echo "" >> $LOG_FILE
 
-echo "##"
-echo "## Create Kafka Connect Connector - yugabyte-sink"
-echo "##"
+echo "
+##
+## Create Kafka Connect Connector - yugabyte-sink
+##
+"
+
 curl -s -X POST -H 'Content-Type: application/json' http://localhost:8083/connectors \
   -d '{
     "name" : "yugabyte-sink",
@@ -36,12 +46,14 @@ curl -s -X POST -H 'Content-Type: application/json' http://localhost:8083/connec
       "yugabyte.cql.tablename": "Origin_Table",
       "topics": "iot-data-event"
     }
-  }' &>> $LOG_FILE
-echo "" >> $LOG_FILE
+  }'
 
-echo "##"
-echo "## Create Kafka Connect Connector - yugabyte-sink-poi"
-echo "##"
+
+echo "
+##
+## Create Kafka Connect Connector - yugabyte-sink-poi
+##
+"
 
 curl -s -X POST -H 'Content-Type: application/json' http://localhost:8083/connectors \
   -d '{
@@ -59,12 +71,13 @@ curl -s -X POST -H 'Content-Type: application/json' http://localhost:8083/connec
       "yugabyte.cql.tablename": "Poi_Traffic",
       "topics": "poi_traffic"
     }
-  }' &>> $LOG_FILE
-echo "" >> $LOG_FILE
+  }'
 
-echo "##"
-echo "## Create Kafka Connect Connector - yugabyte-sink-total"
-echo "##"
+echo "
+##
+## Create Kafka Connect Connector - yugabyte-sink-total
+##
+"
 
 curl -s -X POST -H 'Content-Type: application/json' http://localhost:8083/connectors \
   -d '{
@@ -82,12 +95,13 @@ curl -s -X POST -H 'Content-Type: application/json' http://localhost:8083/connec
       "yugabyte.cql.tablename": "Total_Traffic",
       "topics": "total_traffic"
     }
-  }' &>> $LOG_FILE
-echo "" >> $LOG_FILE
+  }'
 
-echo "##"
-echo "## Create Kafka Connect Connector - yugabyte-sink-window"
-echo "##"
+echo "
+##
+## Create Kafka Connect Connector - yugabyte-sink-window
+##
+"
 
 curl -s -X POST -H 'Content-Type: application/json' http://localhost:8083/connectors \
   -d '{
@@ -105,7 +119,18 @@ curl -s -X POST -H 'Content-Type: application/json' http://localhost:8083/connec
       "yugabyte.cql.tablename": "Window_Traffic",
       "topics": "window_traffic"
     }
-  }' &>> $LOG_FILE
-echo "" >> $LOG_FILE
+  }'
 
-echo "Completed"
+
+echo "
+##
+## Check connectors
+##
+"
+curl http://localhost:8083/connectors
+
+echo "
+##
+## Completed
+##
+"
