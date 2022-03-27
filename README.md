@@ -13,7 +13,7 @@
     ```bash
     git clone https://github.com/yogendra/fun-with-sensors-data.git   fun-with-sensors-data
     cd fun-with-sensors-data
-    ```    
+    ```
 
 1. Setup Yugabyte
 
@@ -287,6 +287,8 @@ FYI - Sample Payload
 
 1. [Click here to open dashboard - http://localhost:8080](http://localhost:8080/)
 
+    ![Fleet Dahsbaord - Empty](fleet-dashboard-empty.png)
+
 1. Setup confluent components
 
     ```bash
@@ -323,6 +325,7 @@ FYI - Sample Payload
     Monitor  Producer Logs- `tail -f /tmp/iot-kafka-producer.log`
 1. [Goto dashboard](http://localhost:8080) to confirm data flowing into the system.
 
+    ![Fleet Dashboard - Populated](fleet-dashboard-populated.png)
 1. (Option) Check table record count
 
     ```bash
