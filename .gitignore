@@ -9,3 +9,4 @@ yugabyte-*/
 kafka_*/
 confluent-*/
 *.log
+yb-iot-fleet-management/
