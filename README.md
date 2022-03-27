@@ -367,7 +367,7 @@ FYI - Sample Payload
 1. Run the sample data producer
 
     ```bash
-    yb-iot-fleet-management/iot-kafka-producer/target/iot-kafka-producer-1.0.0.jar
+    java -jar yb-iot-fleet-management/iot-kafka-producer/target/iot-kafka-producer-1.0.0.jar
     ```
 
     **Output**
