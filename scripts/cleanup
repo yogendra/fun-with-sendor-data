@@ -5,8 +5,32 @@ PROJECT_DIR=$( cd ${SCRIPT_DIR}/.. ; pwd)
 LOG_FILE=/tmp/setup-confluent-iot-fleet-mgmt.log
 
 
+echo "
+##
+## Destroy yugabyte cluster
+##
+"
+
 $PROJECT_DIR/yugabyte-2.13.0.1/bin/yugabyted destroy
+
+echo "
+##
+## Destroy confluent cluster
+##
+"
+
 $PROJECT_DIR/confluent-5.0.3/bin/confluent destroy
+
+echo "
+##
+## Kill iot-fleet-management applicaiton processes (producer and dashboard)
+##
+"
 for pid in $(ps -eaf | grep java | grep yb-iot-fleet-management/iot- | awk {'print $2'}); do
   kill $pid
 done
+echo "
+##
+## Completed
+##
+"
