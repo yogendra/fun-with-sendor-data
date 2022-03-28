@@ -1,0 +1,156 @@
+#!/usr/bin/env bash
+
+
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+PROJECT_DIR=$( cd ${SCRIPT_DIR}/.. ; pwd)
+CONFLUENT_HOME="${CONFLUENT_HOME:-${PROJECT_DIR}/confluent-7.0.1}"
+
+
+echo "
+##
+## Install conenctors
+##
+"
+$CONFLUENT_HOME/bin/confluent-hub install yugabyteinc/yb-kafka-connector:1.0.0 --no-prompt
+$CONFLUENT_HOME/bin/confluent-hub install confluentinc/kafka-connect-mqtt:latest --no-prompt
+
+echo "
+##
+## Create cluster
+##
+"
+
+$CONFLUENT_HOME/bin/confluent local start
+
+
+echo "
+##
+## Create topic : iot-data-event
+##
+"
+
+$CONFLUENT_HOME/bin/kafka-topics --create --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1 --topic iot-data-event
+
+echo "
+##
+## Create KSQL Tables and Streams
+##
+"
+
+$CONFLUENT_HOME/bin/ksql <<EOF
+  RUN SCRIPT '$PROJECT_DIR/yb-iot-fleet-management/iot-ksql-processor/setup_streams-v7.ksql';
+  show tables;
+  show streams;
+  exit
+EOF
+
+echo "
+##
+## Create Kafka Connect Connector - yugabyte-sink
+##
+"
+
+curl -s -X POST -H 'Content-Type: application/json' http://localhost:8083/connectors \
+  -d '{
+    "name" : "yugabyte-sink",
+    "config" : {
+      "confluent.license": "",
+      "key.converter": "org.apache.kafka.connect.storage.StringConverter",
+      "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+      "key.converter.schemas.enable": false,
+      "value.converter.schemas.enable": false,
+      "offset.flush.interval.ms": "10000",
+      "connector.class": "com.yb.connect.sink.YBSinkConnector",
+      "yugabyte.cql.contact.points": "127.0.0.1:9042,127.0.0.2:9042,127.0.0.3:9042",
+      "yugabyte.cql.keyspace": "TrafficKeySpace",
+      "yugabyte.cql.tablename": "Origin_Table",
+      "topics": "iot-data-event"
+    }
+  }'
+
+
+echo "
+##
+## Create Kafka Connect Connector - yugabyte-sink-poi
+##
+"
+
+curl -s -X POST -H 'Content-Type: application/json' http://localhost:8083/connectors \
+  -d '{
+    "name" : "yugabyte-sink-poi",
+    "config" : {
+      "confluent.license": "",
+      "key.converter": "org.apache.kafka.connect.storage.StringConverter",
+      "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+      "key.converter.schemas.enable": false,
+      "value.converter.schemas.enable": false,
+      "offset.flush.interval.ms": "10000",
+      "connector.class": "com.yb.connect.sink.YBSinkConnector",
+      "yugabyte.cql.contact.points": "127.0.0.1:9042,127.0.0.2:9042,127.0.0.3:9042",
+      "yugabyte.cql.keyspace": "TrafficKeySpace",
+      "yugabyte.cql.tablename": "Poi_Traffic",
+      "topics": "poi_traffic"
+    }
+  }'
+
+echo "
+##
+## Create Kafka Connect Connector - yugabyte-sink-total
+##
+"
+
+curl -s -X POST -H 'Content-Type: application/json' http://localhost:8083/connectors \
+  -d '{
+    "name" : "yugabyte-sink-total",
+    "config" : {
+      "confluent.license": "",
+      "key.converter": "org.apache.kafka.connect.storage.StringConverter",
+      "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+      "key.converter.schemas.enable": false,
+      "value.converter.schemas.enable": false,
+      "offset.flush.interval.ms": "10000",
+      "connector.class": "com.yb.connect.sink.YBSinkConnector",
+      "yugabyte.cql.contact.points": "127.0.0.1:9042,127.0.0.2:9042,127.0.0.3:9042",
+      "yugabyte.cql.keyspace": "TrafficKeySpace",
+      "yugabyte.cql.tablename": "Total_Traffic",
+      "topics": "total_traffic"
+    }
+  }'
+
+echo "
+##
+## Create Kafka Connect Connector - yugabyte-sink-window
+##
+"
+
+curl -s -X POST -H 'Content-Type: application/json' http://localhost:8083/connectors \
+  -d '{
+    "name" : "yugabyte-sink-window",
+    "config" : {
+      "confluent.license": "",
+      "key.converter": "org.apache.kafka.connect.storage.StringConverter",
+      "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+      "key.converter.schemas.enable": false,
+      "value.converter.schemas.enable": false,
+      "offset.flush.interval.ms": "10000",
+      "connector.class": "com.yb.connect.sink.YBSinkConnector",
+      "yugabyte.cql.contact.points": "127.0.0.1:9042,127.0.0.2:9042,127.0.0.3:9042",
+      "yugabyte.cql.keyspace": "TrafficKeySpace",
+      "yugabyte.cql.tablename": "Window_Traffic",
+      "topics": "window_traffic"
+    }
+  }'
+
+
+echo "
+##
+## Check connectors
+##
+"
+curl http://localhost:8083/connectors
+
+echo "
+##
+## Completed
+##
+"
