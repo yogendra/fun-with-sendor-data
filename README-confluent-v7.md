@@ -83,6 +83,7 @@
             "tasks.max" : "1",
             "mqtt.server.uri" : "tcp://127.0.0.1:1883",
             "mqtt.topics" : "temperature",
+            "key.converter": "",
             "value.converter": "org.apache.kafka.connect.converters.ByteArrayConverter",
             "kafka.topic" : "mqtt.temperature",
             "confluent.topic.bootstrap.servers": "localhost:9092",
