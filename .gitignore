@@ -11,3 +11,4 @@ confluent-*/
 *.log
 yb-iot-fleet-management/
 nohup.out
+videos/

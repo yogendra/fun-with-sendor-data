@@ -19,7 +19,6 @@
 
 ![Simple Block Architecture ](simple-architecture.png)
 
-
 ## Setup
 
 1. Clone this repository into a directory. Lets refer is by `<project-dir>` in this article. In command below  its `fun-with-sensors-data`
@@ -169,6 +168,81 @@
 
         Completed
         ```
+
+
+## Basic MQTT Demo
+
+1. Start Mosquitto Server on local machine
+
+1. Start simple-sensor.py in background
+
+    ```bash
+    scripts/simple-sensor.py &> /tmp/simple-sensor.py &
+    ```
+
+    **Output**
+
+    ```log
+    only sending changes
+    starting
+    Publishing on  sensors/sensor-3542
+    send control to  sensors/sensor-3542/control
+    Sensors States are  ['ON', 'OFF']
+    connecting to broker localhost:1883
+    Attempts  0
+    publish on sensors/sensor-3542  message   OFF
+    ```
+
+1. Start mqtt display
+
+    ```bash
+    scripts/mqtt-display
+    ```
+
+    **Output**
+
+    ```log
+    OFF
+    ```
+
+1. Split open a new terminal, and turn on sensor
+
+    ```bash
+    scripts/mqtt-switch OFF
+    ```
+
+    **Output**
+    (On the Display)
+
+    ```bash
+    OFF
+    ON
+    ```
+
+1. Again, turn off sensor
+
+    ```bash
+    scripts/mqtt-switch OFF
+    ```
+
+    **Output**
+    (On the Display)
+
+    ```bash
+    OFF
+    ON
+    OFF
+    ```
+
+1. Try same via MQTT Explores
+
+    Send "ON" or "OFF" message on `sensors/sensor-3542/control` topic and see that state change for `sensors/sensor-3542`
+
+    **On Sending OFF**
+    ![](mqttex-sent-off.png)
+
+    **On Sending ON**
+    ![](mqttex-sent-on.png)
 
 ## IoT Fleet Management
 
