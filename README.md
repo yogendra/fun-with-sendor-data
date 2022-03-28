@@ -409,34 +409,32 @@ FYI - Sample Payload
     **Output**
 
     ```log
-
     count
     -------
-
+      346
 
     (1 rows)
 
     count
     -------
-        0
+        15
 
     (1 rows)
 
     count
     -------
-        0
+        15
 
     (1 rows)
 
     count
     -------
-        0
+        4
 
     (1 rows)
     ```
 
 ## Clean up
-
 
 - Partial  - Kafka cleanup
 
