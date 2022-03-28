@@ -1,10 +1,24 @@
 # Fun with Sensors' Data
 
+- [Slide for this presentation](slides.pdf)
+- Video Recording - TBA
+
 ## Versions
 
 - Java 1.8 - This is important as a lot of component rely on it
 - Confluent 5.0.x
 - Yugabyte 2.13.x
+
+## Sample App
+
+### Architecture
+
+![Sample App Architecture](app-architecture.png)
+
+### Architecture Block Environment
+
+![Simple Block Architecture ](simple-architecture.png)
+
 
 ## Setup
 
