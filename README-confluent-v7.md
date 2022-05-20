@@ -22,7 +22,7 @@
         wget "https://packages.confluent.io/archive/7.0/confluent-7.0.1.tar.gz"
         tar -xvf confluent-7.0.1.tar.gz
         export CONFLUENT_HOME=$PWD/confluent-7.0.1
-        export PATH="$PATH:$CONFLUENT_HOME/bin"
+        export PATH="$CONFLUENT_HOME/bin:$PATH"
         ```
 
     1. Install Yugabyte Sink Connector
