@@ -16,14 +16,13 @@
 
 1. Setup Confluent Platform
 
-    1. Download confluent platform and start local service
+    1. Download confluent platform and extract it
 
         ```bash
         wget "https://packages.confluent.io/archive/7.0/confluent-7.0.1.tar.gz"
         tar -xvf confluent-7.0.1.tar.gz
         export CONFLUENT_HOME=$PWD/confluent-7.0.1
-        export PATH=$PATH:$CONFLUENT_HOME/bin
-        confluent local services start
+        export PATH="$PATH:$CONFLUENT_HOME/bin"
         ```
 
     1. Install Yugabyte Sink Connector
@@ -68,6 +67,11 @@
           <current-directory>/confluent-7.0.1/etc/schema-registry/connect-avro-standalone.properties
 
         Completed
+        ```
+    1. Start Confluent platform
+
+        ```bash
+        confluent local services start
         ```
 
 1. Setup Kafka MQTT Connect
@@ -241,6 +245,12 @@
         ```bash
         wget https://downloads.yugabyte.com/releases/2.13.0.1/yugabyte-2.13.0.1-b2-el8-aarch64.tar.gz
         tar xvfz yugabyte-2.13.0.1-b2-el8-aarch64.tar.gz
+        ```
+    1. Export variables for quick access
+
+        ```bash
+        export YUGABYTE_HOME=$PWD/yugabyte-2.13.0.1
+        export PATH="$YUGABYTE_HOME/bin:$PATH" 
         ```
 
     1. [Create a local cluster](https://docs.yugabyte.com/latest/quick-start/create-local-cluster)
