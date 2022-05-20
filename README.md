@@ -55,6 +55,8 @@
         ```bash
         wget https://downloads.yugabyte.com/releases/2.13.0.1/yugabyte-2.13.0.1-b2-el8-aarch64.tar.gz
         tar xvfz yugabyte-2.13.0.1-b2-el8-aarch64.tar.gz
+        export YUGABYTE_HOME=$PWD/yugabyte-2.13.0.1
+        export PATH="$YUGABYTE_HOME/bin:$PATH"
         ```
 
     1. [Create a local cluster](https://docs.yugabyte.com/latest/quick-start/create-local-cluster)
@@ -118,7 +120,7 @@
         wget "https://packages.confluent.io/archive/5.0/confluent-5.0.3-2.11.tar.gz"
         tar -xvf confluent-5.0.3-2.11.tar.gz
         export CONFLUENT_HOME=$PWD/confluent-5.0.3
-        export PATH=$PATH:$CONFLUENT_HOME/bin
+        export PATH="$PATH:$CONFLUENT_HOME/bin"
         confluent-5.0.3/bin/confluent start
         ```
 
