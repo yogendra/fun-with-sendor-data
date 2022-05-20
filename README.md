@@ -55,11 +55,17 @@
         ```bash
         wget https://downloads.yugabyte.com/releases/2.13.0.1/yugabyte-2.13.0.1-b2-el8-aarch64.tar.gz
         tar xvfz yugabyte-2.13.0.1-b2-el8-aarch64.tar.gz
-        export YUGABYTE_HOME=$PWD/yugabyte-2.13.0.1
-        export PATH="$YUGABYTE_HOME/bin:$PATH"
         ```
 
-    1. [Create a local cluster](https://docs.yugabyte.com/latest/quick-start/create-local-cluster)
+    1. Export varibles for quick access
+
+        ```bash
+        export YUGABYTE_HOME=$PWD/yugabyte-2.13.0.1
+        export PATH="$YUGABYTE_HOME/bin:$PATH"
+
+        ```
+        
+    3. [Create a local cluster](https://docs.yugabyte.com/latest/quick-start/create-local-cluster)
 
         ```bash
         yugabyte-2.13.0.1/bin/yugabyted start --listen 127.0.0.1
