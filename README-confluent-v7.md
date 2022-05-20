@@ -368,99 +368,135 @@
 
 
 
-## IoT Fleet Management
+## Setup Fleet Management YB and Kafka
+
+1. Clone IoT Fleet Management Project and make it
+
+    ```bash
+    git clone git@github.com:yogendra/yb-iot-fleet-management.git
+    cd yb-iot-fleet-management
+    mvn clean package -DskipTests
+    cd ..
+    ```
 
 
-### Setup
+
 1. Create YCQL Tables
 
-    1. Start `ycqlsh`
+    ```bash
+    yugabyte-2.13.0.1/bin/ycqlsh -f yb-iot-fleet-management/resources/IoTData.cql
+    ```
+
+    **Output**
+
+    ```log
+
+    count
+    -------
+        0
+
+    (1 rows)
+
+    count
+    -------
+        0
+
+    (1 rows)
+
+    count
+    -------
+        0
+
+    (1 rows)
+
+    count
+    -------
+        0
+
+    (1 rows)
+    ```
+
+1. (Option) Check table definitions
+
+    ```bash
+    yugabyte-2.13.0.1/bin/ycqlsh -e "describe keyspace traffickeyspace;"
+    ```
+
+    **Output**
+
+    ```sql
+
+    CREATE KEYSPACE traffickeyspace WITH replication = {'class': 'SimpleStrategy', 'replication_factor': '1'}  AND durable_writes = true;
+
+    CREATE TABLE traffickeyspace.origin_table (
+        vehicleid text,
+        timestamp timestamp,
+        routeid text,
+        vehicletype text,
+        longitude text,
+        latitude text,
+        speed double,
+        fuellevel double,
+        PRIMARY KEY (vehicleid, timestamp)
+    ) WITH CLUSTERING ORDER BY (timestamp ASC)
+        AND default_time_to_live = 3600
+        AND transactions = {'enabled': 'false'};
+
+    CREATE TABLE traffickeyspace.window_traffic (
+        routeid text,
+        recorddate text,
+        vehicletype text,
+        totalcount bigint,
+        timestamp timestamp,
+        PRIMARY KEY (routeid, recorddate, vehicletype)
+    ) WITH CLUSTERING ORDER BY (recorddate ASC, vehicletype ASC)
+        AND default_time_to_live = 0
+        AND transactions = {'enabled': 'false'};
+
+    CREATE TABLE traffickeyspace.total_traffic (
+        routeid text,
+        recorddate text,
+        vehicletype text,
+        totalcount bigint,
+        timestamp timestamp,
+        PRIMARY KEY (routeid, recorddate, vehicletype)
+    ) WITH CLUSTERING ORDER BY (recorddate ASC, vehicletype ASC)
+        AND default_time_to_live = 0
+        AND transactions = {'enabled': 'false'};
+
+    CREATE TABLE traffickeyspace.poi_traffic (
+        vehicleid text PRIMARY KEY,
+        vehicletype text,
+        distance bigint,
+        timestamp timestamp
+    ) WITH default_time_to_live = 0
+        AND transactions = {'enabled': 'false'};
+    ```
+
+1. (Terminal - 2) Run dashboard application
+
+    ```bash
+    java -jar yb-iot-fleet-management/iot-springboot-dashboard/target/iot-springboot-dashboard-1.0.0.jar
+    ```
+
+1. [Click here to open dashboard - http://localhost:8080](http://localhost:8080/)
+
+    Empty Dashboard would look like following:
+
+    ![Fleet Dahsbaord - Empty](fleet-dashboard-empty.png)
 
 
-        ```bash
-        ycqlsh
-        ```
 
-        **Output**
+1. Setup confluent components
 
-        ```log
-        Connected to local cluster at 127.0.0.1:9042.
-        [ycqlsh 5.0.1 | Cassandra 3.9-SNAPSHOT | CQL spec 3.4.2 | Native protocol v4]
-        Use HELP for help.
-        ycqlsh>
-        ```
+    ```bash
+    scripts/setup-kafka-objects-iot-fleet-mgmt-v7
+    ```
 
-    1. Create keyspace
+    **Output**
 
-        ```sql
-        CREATE KEYSPACE TrafficKeySpace
-        ```
-
-        **Output**
-
-        _No Output_
-
-    1. Create table for sensor data `Origin_Table`
-
-        ```sql
-        CREATE TABLE TrafficKeySpace.Origin_Table (
-          vehicleId text,
-          routeId text,
-          vehicleType text,
-          longitude text,
-          latitude text,
-          timeStamp timestamp,
-          speed double,
-          fuelLevel double,
-          PRIMARY KEY ((vehicleId), timeStamp)
-        ) WITH default_time_to_live = 3600;
-        ```
-
-    1. Create tables for UI - `Total_Traffic`, `Window_Traffic` and `Poi_Traffic`
-
-        ```sql
-        CREATE TABLE TrafficKeySpace.Total_Traffic (
-          routeId text,
-          vehicleType text,
-          totalCount bigint,
-          timeStamp timestamp,
-          recordDate text,
-          PRIMARY KEY (routeId, recordDate, vehicleType)
-        );
-
-        CREATE TABLE TrafficKeySpace.Window_Traffic (
-          routeId text,
-          vehicleType text,
-          totalCount bigint,
-          timeStamp timestamp,
-          recordDate text,
-          PRIMARY KEY (routeId, recordDate, vehicleType)
-        );
-
-        CREATE TABLE TrafficKeySpace.Poi_Traffic(
-          vehicleid text,
-          vehicletype text,
-          distance bigint,
-          timeStamp timestamp,
-          PRIMARY KEY (vehicleid)
-        );
-        ```
-
-    1. Quit `ysqlsh` by Pressing `Ctrl+D` or `quit` command
-
-1. FYI - Sample Payload
-
-    ```json
-    {
-      "vehicleId":"0bf45cac-d1b8-4364-a906-980e1c2bdbcb",
-      "vehicleType":"Taxi",
-      "routeId":"Route-37",
-      "longitude":"-95.255615",
-      "latitude":"33.49808",
-      "timestamp":"2017-10-16 12:31:03",
-      "speed":49.0,
-      "fuelLevel":38.0
-    }
+    ```log
+    
     ```
 
 1. Create topic on kafka
