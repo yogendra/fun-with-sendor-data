@@ -121,6 +121,35 @@
         tar -xvf confluent-5.0.3-2.11.tar.gz
         export CONFLUENT_HOME=$PWD/confluent-5.0.3
         export PATH="$PATH:$CONFLUENT_HOME/bin"
+        ```
+    1. Install Yugabyte Sink Connector
+
+        ```bash
+        confluent-5.0.3/bin/confluent-hub install yugabyteinc/yb-kafka-connector:1.0.0 --no-prompt
+        ```
+
+        **Output**
+
+        ```log
+        Running in a "--no-prompt" mode
+        Implicit confirmation of the question: You are about to install 'yb-kafka-connector' from Yugabyte, Inc., as published on Confluent Hub.
+        Downloading component Kafka Connect Yugabyte 1.0.0, provided by Yugabyte, Inc. from Confluent Hub and installing into <project-dir>/confluent-5.0.3/share/confluent-hub-components
+        Implicit confirmation of the question: Do you want to uninstall existing version 1.0.0?
+        Adding installation directory to plugin path in the following files:
+          <project-dir>/confluent-5.0.3/etc/kafka/connect-distributed.properties
+          <project-dir>/confluent-5.0.3/etc/kafka/connect-standalone.properties
+          <project-dir>/confluent-5.0.3/etc/schema-registry/connect-avro-distributed.properties
+          <project-dir>/confluent-5.0.3/etc/schema-registry/connect-avro-standalone.properties
+          /var/folders/b8/tmz5qjss0n32p_l31d81glnm0000gn/T/confluent.tgdxRufF/connect/connect.properties
+          /var/folders/b8/tmz5qjss0n32p_l31d81glnm0000gn/T/confluent.tgdxRufF/connect/connect.properties
+
+        Completed
+        ```
+
+    1. Start Confluent Platform
+
+        
+        ```bash
         confluent-5.0.3/bin/confluent start
         ```
 
@@ -145,30 +174,6 @@
         ksql-server is [UP]
         Starting control-center
         control-center is [UP]
-        ```
-
-    1. Install Yugabyte Sink Connector
-
-        ```bash
-        confluent-5.0.3/bin/confluent-hub install yugabyteinc/yb-kafka-connector:1.0.0 --no-prompt
-        ```
-
-        **Output**
-
-        ```log
-        Running in a "--no-prompt" mode
-        Implicit confirmation of the question: You are about to install 'yb-kafka-connector' from Yugabyte, Inc., as published on Confluent Hub.
-        Downloading component Kafka Connect Yugabyte 1.0.0, provided by Yugabyte, Inc. from Confluent Hub and installing into <project-dir>/confluent-5.0.3/share/confluent-hub-components
-        Implicit confirmation of the question: Do you want to uninstall existing version 1.0.0?
-        Adding installation directory to plugin path in the following files:
-          <project-dir>/confluent-5.0.3/etc/kafka/connect-distributed.properties
-          <project-dir>/confluent-5.0.3/etc/kafka/connect-standalone.properties
-          <project-dir>/confluent-5.0.3/etc/schema-registry/connect-avro-distributed.properties
-          <project-dir>/confluent-5.0.3/etc/schema-registry/connect-avro-standalone.properties
-          /var/folders/b8/tmz5qjss0n32p_l31d81glnm0000gn/T/confluent.tgdxRufF/connect/connect.properties
-          /var/folders/b8/tmz5qjss0n32p_l31d81glnm0000gn/T/confluent.tgdxRufF/connect/connect.properties
-
-        Completed
         ```
 
 
